@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 //initializes members of [vec] structure for empty array
@@ -24,8 +23,7 @@ void CAT(NAME, destroy)(NAME* vec)
 //returns index of the added element
 int CAT(NAME, push)(NAME* vec, TYPE value)
 {
-    if (vec->cap==0)
-    {
+    if (vec->arr == NULL || vec->cap == 0) {
         CAT(NAME, init)(vec);
     }
 	if (vec->n + 1 > vec->cap)
@@ -49,21 +47,15 @@ TYPE CAT(NAME, pop)(NAME* vec)
 //note: address of elements surely won�t change before [vec->n] exceeds capacity
 void CAT(NAME, reserve)(NAME* vec, int capacity)
 {
-	if (capacity == 0)
-	{
-		capacity = 1;
-	}
-    if(vec->cap==0)
-    {
-        vec->arr=calloc(capacity, sizeof(TYPE));
-        vec->cap = capacity;
-        return;
+    if (vec->arr == NULL || vec->cap == 0) {
+        CAT(NAME, init)(vec);
     }
-    if(capacity==vec->cap)
+    if (capacity == 0)
     {
-        return;
-    } else{
-	vec->arr = realloc(vec->arr, capacity * sizeof(TYPE)+1);
+        capacity = 1;
+    }
+    if(vec->cap<capacity){
+	vec->arr =(TYPE*) realloc(vec->arr, capacity * sizeof(TYPE)+1);
 	vec->cap = capacity;
 }
 }
@@ -72,6 +64,9 @@ void CAT(NAME, reserve)(NAME* vec, int capacity)
 //if the number decreases, some elements at the end are removed
 void CAT(NAME, resize)(NAME* vec, int newCnt, TYPE fill)
 {
+    if (vec->arr == NULL || vec->cap == 0) {
+        CAT(NAME, init)(vec);
+    }
 	CAT(NAME, reserve)(vec, newCnt);
 	for (int i  = vec->n; i < newCnt; i++)
 	{
@@ -84,27 +79,26 @@ void CAT(NAME, resize)(NAME* vec, int newCnt, TYPE fill)
 //note: the whole array [arr] cannot be part of array [vec] // PSHLNH
 //[where] may vary from 0 to [vec->n], [num] can also be zero
 void CAT(NAME, insert)(NAME* vec, int where, TYPE* arr, int num) {
-    if(num==0)
+    if (vec->arr==NULL || vec->cap ==0)
     {
-        return;
+        CAT(NAME, init)(vec);
     }
-    if (vec->cap <= vec->n+num) {
-        CAT(NAME, reserve)(vec, (vec->cap + vec->n+num)*2);
-    }
-    if(vec->n==0)
+    if(vec->cap<vec->n+num)
     {
-        memmove(vec->arr+where,arr,sizeof(TYPE)*num);
-    } else {
-        memmove(vec->arr + where + num, vec->arr + where, sizeof(TYPE) * (num + vec->n));
-        memmove(vec->arr + where, arr, sizeof(TYPE) * num);
+        CAT(NAME, reserve)(vec,vec->cap+num);
     }
+    memmove(vec->arr + where + num, vec->arr + where, sizeof(TYPE) * (vec->n-where));
+    memmove(vec->arr + where, arr, sizeof(TYPE) * num);
     vec->n += num;
 }
 //removes elements [vec->arr[k]] for k = [where], [where+1], ..., [where+num-1]
 //all the elements starting from [where+num]-th are shifted left by [num] positions
 void CAT(NAME, erase)(NAME* vec, int where, int num)
 {
-
+    if (vec->arr==NULL || vec->cap ==0)
+    {
+        CAT(NAME, init)(vec);
+    }
 	if (num <= 0)
 	{
 		return;
@@ -113,9 +107,8 @@ void CAT(NAME, erase)(NAME* vec, int where, int num)
 	{
 		return;
 	}
-    memmove(vec->arr+where,vec->arr+where+num,sizeof(TYPE)*vec->n-num);
+    memmove(vec->arr+where,vec->arr+where+num,sizeof(TYPE)*(vec->n-where-num));
 	vec->n -= num;
 }
 #undef TYPE
-#undef NAME
 #undef NAME

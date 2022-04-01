@@ -39,4 +39,3 @@ void CAT(NAME, erase)(NAME* vec, int where, int num);
 
 #undef TYPE
 #undef NAME
-#undef NAME
